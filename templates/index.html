@@ -1,196 +1,161 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard XGBoost</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<title>Dashboard XGBoost</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+<style>
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
 
-    body {
-      margin: 0;
-      background: #f3f6fa;
-      color: #0f172a;
-    }
+body {
+  margin: 0;
+  background: #f3f6fa;
+  color: #0f172a;
+}
 
-    header {
-      background: linear-gradient(135deg, #0f172a, #16a34a);
-      color: white;
-      padding: 45px 30px;
-      text-align: center;
-    }
+header {
+  background: linear-gradient(135deg, #0f172a, #16a34a);
+  color: white;
+  padding: 45px 30px;
+  text-align: center;
+}
 
-    header h1 {
-      font-size: 42px;
-      margin: 0;
-    }
+header h1 {
+  font-size: 42px;
+  margin: 0;
+}
 
-    header p {
-      margin-top: 12px;
-      font-size: 18px;
-    }
+.container {
+  max-width: 1300px;
+  margin: 35px auto;
+  padding: 20px;
+}
 
-    .container {
-      max-width: 1300px;
-      margin: 35px auto;
-      padding: 20px;
-    }
+.modelos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
 
-    .modelos {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-      gap: 24px;
-      margin-bottom: 30px;
-    }
+.card, .grafica-card {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
 
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      transition: 0.3s;
-    }
+.card h2, .grafica-card h2 {
+  color: #0f172a;
+}
 
-    .card:hover {
-      transform: translateY(-6px);
-    }
+.tipo {
+  display: inline-block;
+  background: #dcfce7;
+  color: #166534;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+}
 
-    .card h2 {
-      color: #16a34a;
-      margin-top: 0;
-    }
+button {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 13px 20px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-    .tipo {
-      display: inline-block;
-      background: #dcfce7;
-      color: #166534;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
+button:hover {
+  background: #15803d;
+}
 
-    button {
-      background: #16a34a;
-      color: white;
-      border: none;
-      padding: 13px 20px;
-      border-radius: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
+.dashboard {
+  display: none;
+}
 
-    button:hover {
-      background: #15803d;
-    }
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
 
-    .loading {
-      background: #111827;
-      color: #d1fae5;
-      padding: 20px;
-      border-radius: 15px;
-      display: none;
-      margin-bottom: 20px;
-    }
+.metrica {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  text-align: center;
+}
 
-    .dashboard {
-      display: none;
-    }
+.metrica h3 {
+  margin: 0;
+  color: #64748b;
+  font-size: 15px;
+}
 
-    .titulo-dashboard {
-      margin: 30px 0 20px;
-    }
+.metrica p {
+  font-size: 30px;
+  font-weight: bold;
+  color: #16a34a;
+  margin: 12px 0 0;
+}
 
-    .metricas {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 20px;
-      margin-bottom: 25px;
-    }
+.graficas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 25px;
+}
 
-    .metrica {
-      background: white;
-      border-radius: 18px;
-      padding: 20px;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.08);
-      text-align: center;
-    }
+input {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 15px;
+}
 
-    .metrica h3 {
-      margin: 0;
-      color: #64748b;
-      font-size: 15px;
-    }
+.resultado {
+  margin-top: 20px;
+  background: #111827;
+  color: #d1fae5;
+  padding: 20px;
+  border-radius: 15px;
+  white-space: pre-line;
+}
 
-    .metrica p {
-      font-size: 30px;
-      font-weight: bold;
-      color: #16a34a;
-      margin: 12px 0 0;
-    }
+.alto {
+  color: #fecaca;
+}
 
-    .graficas {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-      gap: 25px;
-    }
+.bajo {
+  color: #bbf7d0;
+}
 
-    .grafica-card {
-      background: white;
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    }
-
-    .grafica-card h3 {
-      margin-top: 0;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: white;
-      border-radius: 15px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    th {
-      background: #0f172a;
-      color: white;
-    }
-
-    .oculto {
-      display: none;
-    }
-
-    footer {
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      padding: 25px;
-      margin-top: 40px;
-    }
-  </style>
+footer {
+  background: #0f172a;
+  color: white;
+  text-align: center;
+  padding: 25px;
+  margin-top: 40px;
+}
+</style>
 </head>
 
 <body>
 
 <header>
   <h1>Dashboard de Modelos XGBoost</h1>
-  <p>Modelos de clasificación y regresión con métricas, gráficas y resultados reales</p>
+  <p>Modelos de clasificación, regresión y evaluación de riesgo crediticio</p>
 </header>
 
 <div class="container">
@@ -206,16 +171,13 @@
     {% endfor %}
   </div>
 
-  <div id="loading" class="loading">
-    Entrenando modelo y generando dashboard...
-  </div>
-
   <div id="dashboard" class="dashboard">
-
-    <div class="titulo-dashboard">
+    <div class="grafica-card">
       <h2 id="nombreModelo"></h2>
       <p id="descripcionModelo"></p>
     </div>
+
+    <br>
 
     <div class="metricas">
       <div class="metrica">
@@ -237,14 +199,13 @@
     </div>
 
     <div class="graficas">
-
       <div class="grafica-card">
         <h3>Importancia de características</h3>
         <canvas id="graficaImportancia"></canvas>
       </div>
 
       <div class="grafica-card">
-        <h3 id="tituloGrafica2">Predicciones por clase</h3>
+        <h3 id="tituloGrafica2">Predicciones</h3>
         <canvas id="grafica2"></canvas>
       </div>
 
@@ -257,294 +218,243 @@
         <h3>Datos utilizados</h3>
         <canvas id="graficaDatos"></canvas>
       </div>
-
     </div>
+  </div>
 
-    <div id="seccionClasificacion">
-      <div class="grafica-card" style="margin-top:25px;">
-        <h3>Matriz de confusión</h3>
-        <div id="matriz"></div>
-      </div>
+  <div class="grafica-card" style="margin-top:35px;">
+    <h2>Evaluador de Riesgo Crediticio</h2>
+    <p>Ingresa los datos del cliente para evaluar el nivel de riesgo.</p>
 
-      <div class="grafica-card" style="margin-top:25px;">
-        <h3>Primeras probabilidades generadas por el modelo</h3>
-        <div id="probabilidades"></div>
-      </div>
+    <input id="limit_bal" type="number" placeholder="Monto de crédito" value="50000">
+    <input id="age" type="number" placeholder="Edad" value="25">
+    <input id="pay_0" type="number" placeholder="PAY_0: último mes (-1 pagó completo, 0 al corriente, 1 atraso, 2 atraso mayor)" value="1">
+    <input id="pay_2" type="number" placeholder="PAY_2: hace dos meses" value="2">
+    <input id="bill_amt1" type="number" placeholder="Monto facturado" value="20000">
+    <input id="pay_amt1" type="number" placeholder="Monto pagado" value="5000">
+
+    <button onclick="evaluarCredito()">Evaluar riesgo</button>
+
+    <div id="resultadoCredito" class="resultado">
+      Aquí aparecerá la evaluación del cliente.
     </div>
-
-    <div id="seccionRegresion" class="oculto">
-      <div class="grafica-card" style="margin-top:25px;">
-        <h3>Valores reales vs valores predichos</h3>
-        <div id="tablaRegresion"></div>
-      </div>
-    </div>
-
   </div>
 
 </div>
 
 <footer>
-  Proyecto escolar | XGBoost + Flask + Dashboard
+  Proyecto escolar | XGBoost + Flask + Render
 </footer>
 
 <script>
-  let chartImportancia = null;
-  let chart2 = null;
-  let chartMetricas = null;
-  let chartDatos = null;
+let chartImportancia = null;
+let chart2 = null;
+let chartMetricas = null;
+let chartDatos = null;
 
-  async function ejecutarModelo(id) {
-    document.getElementById("loading").style.display = "block";
-    document.getElementById("dashboard").style.display = "none";
+function destruir(chart) {
+  if (chart) {
+    chart.destroy();
+  }
+}
 
-    const response = await fetch("/modelo/" + id);
+async function ejecutarModelo(id) {
+  const response = await fetch("/modelo/" + id);
+  const data = await response.json();
+
+  if (data.error) {
+    alert("Error: " + data.error);
+    return;
+  }
+
+  const r = data.resultados;
+
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("nombreModelo").textContent = data.nombre;
+  document.getElementById("descripcionModelo").textContent = data.descripcion;
+
+  crearGraficaImportancia(r.features, r.importancias);
+  crearGraficaDatos(r.total_entrenamiento, r.total_prueba);
+
+  if (r.tipo === "clasificacion") {
+    mostrarClasificacion(r);
+  } else {
+    mostrarRegresion(r);
+  }
+}
+
+function crearGraficaImportancia(labels, valores) {
+  destruir(chartImportancia);
+
+  chartImportancia = new Chart(document.getElementById("graficaImportancia"), {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Importancia",
+        data: valores,
+        backgroundColor: "#16a34a"
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: "y"
+    }
+  });
+}
+
+function crearGraficaDatos(entrenamiento, prueba) {
+  destruir(chartDatos);
+
+  chartDatos = new Chart(document.getElementById("graficaDatos"), {
+    type: "pie",
+    data: {
+      labels: ["Entrenamiento", "Prueba"],
+      datasets: [{
+        data: [entrenamiento, prueba],
+        backgroundColor: ["#16a34a", "#0f172a"]
+      }]
+    }
+  });
+}
+
+function mostrarClasificacion(r) {
+  document.getElementById("m1Titulo").textContent = "Accuracy";
+  document.getElementById("m2Titulo").textContent = "Precision";
+  document.getElementById("m3Titulo").textContent = "Recall";
+  document.getElementById("m4Titulo").textContent = "F1 Score";
+
+  document.getElementById("m1").textContent = r.accuracy + "%";
+  document.getElementById("m2").textContent = r.precision + "%";
+  document.getElementById("m3").textContent = r.recall + "%";
+  document.getElementById("m4").textContent = r.f1 + "%";
+
+  document.getElementById("tituloGrafica2").textContent = "Predicciones por clase";
+
+  destruir(chart2);
+  chart2 = new Chart(document.getElementById("grafica2"), {
+    type: "doughnut",
+    data: {
+      labels: r.clases,
+      datasets: [{
+        data: r.conteo_predicciones,
+        backgroundColor: ["#16a34a", "#0f172a", "#84cc16", "#22c55e", "#14532d"]
+      }]
+    }
+  });
+
+  destruir(chartMetricas);
+  chartMetricas = new Chart(document.getElementById("graficaMetricas"), {
+    type: "bar",
+    data: {
+      labels: ["Accuracy", "Precision", "Recall", "F1"],
+      datasets: [{
+        label: "Porcentaje",
+        data: [r.accuracy, r.precision, r.recall, r.f1],
+        backgroundColor: "#0f172a"
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          min: 0,
+          max: 100
+        }
+      }
+    }
+  });
+}
+
+function mostrarRegresion(r) {
+  document.getElementById("m1Titulo").textContent = "MAE";
+  document.getElementById("m2Titulo").textContent = "MSE";
+  document.getElementById("m3Titulo").textContent = "RMSE";
+  document.getElementById("m4Titulo").textContent = "R²";
+
+  document.getElementById("m1").textContent = r.mae;
+  document.getElementById("m2").textContent = r.mse;
+  document.getElementById("m3").textContent = r.rmse;
+  document.getElementById("m4").textContent = r.r2 + "%";
+
+  document.getElementById("tituloGrafica2").textContent = "Real vs Predicho";
+
+  destruir(chart2);
+  chart2 = new Chart(document.getElementById("grafica2"), {
+    type: "line",
+    data: {
+      labels: r.reales.map((_, i) => "Dato " + (i + 1)),
+      datasets: [
+        {
+          label: "Real",
+          data: r.reales,
+          borderColor: "#16a34a",
+          backgroundColor: "#16a34a",
+          tension: 0.3
+        },
+        {
+          label: "Predicho",
+          data: r.predichos,
+          borderColor: "#0f172a",
+          backgroundColor: "#0f172a",
+          tension: 0.3
+        }
+      ]
+    }
+  });
+
+  destruir(chartMetricas);
+  chartMetricas = new Chart(document.getElementById("graficaMetricas"), {
+    type: "bar",
+    data: {
+      labels: ["MAE", "MSE", "RMSE", "R²"],
+      datasets: [{
+        label: "Valor",
+        data: [r.mae, r.mse, r.rmse, r.r2],
+        backgroundColor: "#0f172a"
+      }]
+    }
+  });
+}
+
+async function evaluarCredito() {
+  const datos = {
+    limit_bal: document.getElementById("limit_bal").value,
+    age: document.getElementById("age").value,
+    pay_0: document.getElementById("pay_0").value,
+    pay_2: document.getElementById("pay_2").value,
+    bill_amt1: document.getElementById("bill_amt1").value,
+    pay_amt1: document.getElementById("pay_amt1").value
+  };
+
+  const resultado = document.getElementById("resultadoCredito");
+  resultado.textContent = "Evaluando cliente...";
+
+  try {
+    const response = await fetch("/evaluar_credito", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(datos)
+    });
+
     const data = await response.json();
 
-    document.getElementById("loading").style.display = "none";
-
     if (data.error) {
-      alert("Error: " + data.error);
+      resultado.textContent = "Error: " + data.error;
       return;
     }
 
-    const r = data.resultados;
+    const clase = data.riesgo === "Riesgo alto" ? "alto" : "bajo";
 
-    document.getElementById("dashboard").style.display = "block";
-    document.getElementById("nombreModelo").textContent = data.nombre;
-    document.getElementById("descripcionModelo").textContent = data.descripcion;
+    resultado.innerHTML =
+      "<strong class='" + clase + "'>Resultado: " + data.riesgo + "</strong><br>" +
+      "Probabilidad de riesgo: " + data.probabilidad + "%<br>" +
+      "Recomendación: " + data.recomendacion;
 
-    crearGraficaImportancia(r.features, r.importancias);
-    crearGraficaDatos(r.total_entrenamiento, r.total_prueba);
-
-    if (r.tipo === "clasificacion") {
-      mostrarClasificacion(r);
-    } else {
-      mostrarRegresion(r);
-    }
+  } catch (error) {
+    resultado.textContent = "Error al conectar con el servidor.";
   }
-
-  function destruir(chart) {
-    if (chart) {
-      chart.destroy();
-    }
-  }
-
-  function crearGraficaImportancia(labels, valores) {
-    destruir(chartImportancia);
-
-    chartImportancia = new Chart(document.getElementById("graficaImportancia"), {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Importancia",
-          data: valores,
-          backgroundColor: "#16a34a"
-        }]
-      },
-      options: {
-        responsive: true,
-        indexAxis: "y"
-      }
-    });
-  }
-
-  function crearGraficaDatos(entrenamiento, prueba) {
-    destruir(chartDatos);
-
-    chartDatos = new Chart(document.getElementById("graficaDatos"), {
-      type: "pie",
-      data: {
-        labels: ["Entrenamiento", "Prueba"],
-        datasets: [{
-          data: [entrenamiento, prueba],
-          backgroundColor: ["#16a34a", "#0f172a"]
-        }]
-      }
-    });
-  }
-
-  function mostrarClasificacion(r) {
-    document.getElementById("seccionClasificacion").classList.remove("oculto");
-    document.getElementById("seccionRegresion").classList.add("oculto");
-
-    document.getElementById("m1Titulo").textContent = "Accuracy";
-    document.getElementById("m2Titulo").textContent = "Precision";
-    document.getElementById("m3Titulo").textContent = "Recall";
-    document.getElementById("m4Titulo").textContent = "F1 Score";
-
-    document.getElementById("m1").textContent = r.accuracy + "%";
-    document.getElementById("m2").textContent = r.precision + "%";
-    document.getElementById("m3").textContent = r.recall + "%";
-    document.getElementById("m4").textContent = r.f1 + "%";
-
-    document.getElementById("tituloGrafica2").textContent = "Predicciones por clase";
-
-    destruir(chart2);
-    chart2 = new Chart(document.getElementById("grafica2"), {
-      type: "doughnut",
-      data: {
-        labels: r.clases,
-        datasets: [{
-          data: r.conteo_predicciones,
-          backgroundColor: ["#16a34a", "#0f172a", "#84cc16", "#22c55e", "#14532d"]
-        }]
-      }
-    });
-
-    destruir(chartMetricas);
-    chartMetricas = new Chart(document.getElementById("graficaMetricas"), {
-      type: "bar",
-      data: {
-        labels: ["Accuracy", "Precision", "Recall", "F1"],
-        datasets: [{
-          label: "Porcentaje",
-          data: [r.accuracy, r.precision, r.recall, r.f1],
-          backgroundColor: "#0f172a"
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            min: 0,
-            max: 100
-          }
-        }
-      }
-    });
-
-    crearMatriz(r.matriz, r.clases);
-    crearProbabilidades(r.primeras_probabilidades, r.clases);
-  }
-
-  function mostrarRegresion(r) {
-    document.getElementById("seccionClasificacion").classList.add("oculto");
-    document.getElementById("seccionRegresion").classList.remove("oculto");
-
-    document.getElementById("m1Titulo").textContent = "MAE";
-    document.getElementById("m2Titulo").textContent = "MSE";
-    document.getElementById("m3Titulo").textContent = "RMSE";
-    document.getElementById("m4Titulo").textContent = "R²";
-
-    document.getElementById("m1").textContent = r.mae;
-    document.getElementById("m2").textContent = r.mse;
-    document.getElementById("m3").textContent = r.rmse;
-    document.getElementById("m4").textContent = r.r2 + "%";
-
-    document.getElementById("tituloGrafica2").textContent = "Real vs Predicho";
-
-    destruir(chart2);
-    chart2 = new Chart(document.getElementById("grafica2"), {
-      type: "line",
-      data: {
-        labels: r.reales.map((_, i) => "Dato " + (i + 1)),
-        datasets: [
-          {
-            label: "Real",
-            data: r.reales,
-            borderColor: "#16a34a",
-            backgroundColor: "#16a34a",
-            tension: 0.3
-          },
-          {
-            label: "Predicho",
-            data: r.predichos,
-            borderColor: "#0f172a",
-            backgroundColor: "#0f172a",
-            tension: 0.3
-          }
-        ]
-      }
-    });
-
-    destruir(chartMetricas);
-    chartMetricas = new Chart(document.getElementById("graficaMetricas"), {
-      type: "bar",
-      data: {
-        labels: ["MAE", "MSE", "RMSE", "R²"],
-        datasets: [{
-          label: "Valor",
-          data: [r.mae, r.mse, r.rmse, r.r2],
-          backgroundColor: "#0f172a"
-        }]
-      }
-    });
-
-    crearTablaRegresion(r.reales, r.predichos);
-  }
-
-  function crearMatriz(matriz, clases) {
-    let html = "<table>";
-    html += "<tr><th>Real / Predicción</th>";
-
-    clases.forEach(c => {
-      html += "<th>" + c + "</th>";
-    });
-
-    html += "</tr>";
-
-    matriz.forEach((fila, i) => {
-      html += "<tr>";
-      html += "<th>" + clases[i] + "</th>";
-
-      fila.forEach(valor => {
-        html += "<td>" + valor + "</td>";
-      });
-
-      html += "</tr>";
-    });
-
-    html += "</table>";
-
-    document.getElementById("matriz").innerHTML = html;
-  }
-
-  function crearProbabilidades(probabilidades, clases) {
-    let html = "<table>";
-    html += "<tr><th>Muestra</th>";
-
-    clases.forEach(c => {
-      html += "<th>" + c + "</th>";
-    });
-
-    html += "</tr>";
-
-    probabilidades.forEach((fila, i) => {
-      html += "<tr>";
-      html += "<td>" + (i + 1) + "</td>";
-
-      fila.forEach(valor => {
-        html += "<td>" + valor + "</td>";
-      });
-
-      html += "</tr>";
-    });
-
-    html += "</table>";
-
-    document.getElementById("probabilidades").innerHTML = html;
-  }
-
-  function crearTablaRegresion(reales, predichos) {
-    let html = "<table>";
-    html += "<tr><th>Muestra</th><th>Valor real</th><th>Valor predicho</th><th>Diferencia</th></tr>";
-
-    reales.forEach((real, i) => {
-      const pred = predichos[i];
-      const diferencia = Math.abs(real - pred).toFixed(2);
-
-      html += "<tr>";
-      html += "<td>" + (i + 1) + "</td>";
-      html += "<td>" + real + "</td>";
-      html += "<td>" + pred + "</td>";
-      html += "<td>" + diferencia + "</td>";
-      html += "</tr>";
-    });
-
-    html += "</table>";
-
-    document.getElementById("tablaRegresion").innerHTML = html;
-  }
+}
 </script>
 
 </body>
