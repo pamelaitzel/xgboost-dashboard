@@ -6,6 +6,7 @@ from sklearn.datasets import (
     load_digits,
     load_diabetes,
     fetch_california_housing,
+    make_classification,
 )
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
@@ -18,7 +19,6 @@ from sklearn.metrics import (
     mean_squared_error,
     r2_score,
 )
-from sklearn.datasets import make_classification
 import xgboost as xgb
 import numpy as np
 import os
@@ -162,6 +162,7 @@ def entrenar_regresion(dataset):
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
+
     mae = mean_absolute_error(y_test, y_pred)
     mse = mean_squared_error(y_test, y_pred)
     rmse = np.sqrt(mse)
@@ -225,9 +226,10 @@ def evaluar_credito():
         pay_amt1 = float(data.get("pay_amt1", 0))
 
         if limit_bal <= 0:
-            return jsonify({"error": "El monto de crédito debe ser mayor a 0"})
+            return jsonify({"error": "El monto de crédito debe ser mayor a 0"}), 400
+
         if age < 18 or age > 80:
-            return jsonify({"error": "La edad debe estar entre 18 y 80 años"})
+            return jsonify({"error": "La edad debe estar entre 18 y 80 años"}), 400
 
         X, y = make_classification(
             n_samples=2000,
@@ -238,6 +240,19 @@ def evaluar_credito():
             random_state=42,
         )
 
+        feature_names = [
+            "Monto crédito",
+            "Edad",
+            "PAY_0",
+            "PAY_2",
+            "Factura",
+            "Pago realizado",
+        ]
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.25, random_state=42
+        )
+
         model = xgb.XGBClassifier(
             n_estimators=100,
             max_depth=4,
@@ -246,7 +261,9 @@ def evaluar_credito():
             random_state=42,
         )
 
-        model.fit(X, y)
+        model.fit(X_train, y_train)
+
+        y_pred = model.predict(X_test)
 
         entrada = np.array([[
             limit_bal / 100000,
@@ -258,12 +275,37 @@ def evaluar_credito():
         ]])
 
         pred = int(model.predict(entrada)[0])
-        prob = float(model.predict_proba(entrada)[0][1]) * 100
+        proba = model.predict_proba(entrada)[0]
+
+        prob_bajo = round(float(proba[0]) * 100, 2)
+        prob_alto = round(float(proba[1]) * 100, 2)
+
+        importancias = model.feature_importances_
+        indices = np.argsort(importancias)[::-1]
+
+        features_ordenadas = [feature_names[i] for i in indices]
+        importancias_ordenadas = [round(float(importancias[i]), 4) for i in indices]
 
         return jsonify({
             "riesgo": "Riesgo alto" if pred == 1 else "Riesgo bajo",
-            "probabilidad": round(prob, 2),
+            "probabilidad": prob_alto,
+            "prob_bajo": prob_bajo,
+            "prob_alto": prob_alto,
             "recomendacion": "Revisar historial de pagos antes de aprobar." if pred == 1 else "Cliente con perfil favorable.",
+            "accuracy": round(float(accuracy_score(y_test, y_pred)) * 100, 2),
+            "precision": round(float(precision_score(y_test, y_pred, zero_division=0)) * 100, 2),
+            "recall": round(float(recall_score(y_test, y_pred, zero_division=0)) * 100, 2),
+            "f1": round(float(f1_score(y_test, y_pred, zero_division=0)) * 100, 2),
+            "features": features_ordenadas,
+            "importancias": importancias_ordenadas,
+            "valores_cliente": [
+                limit_bal,
+                age,
+                pay_0,
+                pay_2,
+                bill_amt1,
+                pay_amt1,
+            ],
         })
 
     except Exception as e:

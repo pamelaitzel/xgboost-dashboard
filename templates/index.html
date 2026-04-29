@@ -29,6 +29,10 @@ header h1 {
   margin: 0;
 }
 
+header p {
+  font-size: 18px;
+}
+
 .container {
   max-width: 1300px;
   margin: 35px auto;
@@ -237,6 +241,51 @@ footer {
     <div id="resultadoCredito" class="resultado">
       Aquí aparecerá la evaluación del cliente.
     </div>
+
+    <div id="dashboardCredito" style="display:none; margin-top:25px;">
+
+      <div class="metricas">
+        <div class="metrica">
+          <h3>Accuracy</h3>
+          <p id="creditoAccuracy">0%</p>
+        </div>
+        <div class="metrica">
+          <h3>Precision</h3>
+          <p id="creditoPrecision">0%</p>
+        </div>
+        <div class="metrica">
+          <h3>Recall</h3>
+          <p id="creditoRecall">0%</p>
+        </div>
+        <div class="metrica">
+          <h3>F1 Score</h3>
+          <p id="creditoF1">0%</p>
+        </div>
+      </div>
+
+      <div class="graficas">
+        <div class="grafica-card">
+          <h3>Probabilidad de riesgo</h3>
+          <canvas id="graficaRiesgoCredito"></canvas>
+        </div>
+
+        <div class="grafica-card">
+          <h3>Importancia de variables crediticias</h3>
+          <canvas id="graficaImportanciaCredito"></canvas>
+        </div>
+
+        <div class="grafica-card">
+          <h3>Datos ingresados del cliente</h3>
+          <canvas id="graficaDatosCliente"></canvas>
+        </div>
+
+        <div class="grafica-card">
+          <h3>Métricas del modelo crediticio</h3>
+          <canvas id="graficaMetricasCredito"></canvas>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 </div>
@@ -250,6 +299,11 @@ let chartImportancia = null;
 let chart2 = null;
 let chartMetricas = null;
 let chartDatos = null;
+
+let chartRiesgoCredito = null;
+let chartImportanciaCredito = null;
+let chartDatosCliente = null;
+let chartMetricasCredito = null;
 
 function destruir(chart) {
   if (chart) {
@@ -441,6 +495,7 @@ async function evaluarCredito() {
 
     if (data.error) {
       resultado.textContent = "Error: " + data.error;
+      document.getElementById("dashboardCredito").style.display = "none";
       return;
     }
 
@@ -448,11 +503,82 @@ async function evaluarCredito() {
 
     resultado.innerHTML =
       "<strong class='" + clase + "'>Resultado: " + data.riesgo + "</strong><br>" +
-      "Probabilidad de riesgo: " + data.probabilidad + "%<br>" +
+      "Probabilidad de riesgo alto: " + data.probabilidad + "%<br>" +
       "Recomendación: " + data.recomendacion;
+
+    document.getElementById("dashboardCredito").style.display = "block";
+
+    document.getElementById("creditoAccuracy").textContent = data.accuracy + "%";
+    document.getElementById("creditoPrecision").textContent = data.precision + "%";
+    document.getElementById("creditoRecall").textContent = data.recall + "%";
+    document.getElementById("creditoF1").textContent = data.f1 + "%";
+
+    destruir(chartRiesgoCredito);
+    destruir(chartImportanciaCredito);
+    destruir(chartDatosCliente);
+    destruir(chartMetricasCredito);
+
+    chartRiesgoCredito = new Chart(document.getElementById("graficaRiesgoCredito"), {
+      type: "doughnut",
+      data: {
+        labels: ["Riesgo bajo", "Riesgo alto"],
+        datasets: [{
+          data: [data.prob_bajo, data.prob_alto],
+          backgroundColor: ["#16a34a", "#dc2626"]
+        }]
+      }
+    });
+
+    chartImportanciaCredito = new Chart(document.getElementById("graficaImportanciaCredito"), {
+      type: "bar",
+      data: {
+        labels: data.features,
+        datasets: [{
+          label: "Importancia",
+          data: data.importancias,
+          backgroundColor: "#16a34a"
+        }]
+      },
+      options: {
+        indexAxis: "y"
+      }
+    });
+
+    chartDatosCliente = new Chart(document.getElementById("graficaDatosCliente"), {
+      type: "bar",
+      data: {
+        labels: ["Crédito", "Edad", "PAY_0", "PAY_2", "Factura", "Pago"],
+        datasets: [{
+          label: "Valores ingresados",
+          data: data.valores_cliente,
+          backgroundColor: "#0f172a"
+        }]
+      }
+    });
+
+    chartMetricasCredito = new Chart(document.getElementById("graficaMetricasCredito"), {
+      type: "bar",
+      data: {
+        labels: ["Accuracy", "Precision", "Recall", "F1"],
+        datasets: [{
+          label: "Porcentaje",
+          data: [data.accuracy, data.precision, data.recall, data.f1],
+          backgroundColor: "#16a34a"
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            min: 0,
+            max: 100
+          }
+        }
+      }
+    });
 
   } catch (error) {
     resultado.textContent = "Error al conectar con el servidor.";
+    document.getElementById("dashboardCredito").style.display = "none";
   }
 }
 </script>
